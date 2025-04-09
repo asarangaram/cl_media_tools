@@ -1,0 +1,25 @@
+name: cl_media_tools_example
+description: "Demonstrates how to use the cl_media_tools plugin."
+publish_to: "none"
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  file_picker: ^10.0.0
+  path: ^1.9.0
+  cl_media_tools:
+    path: ../
+
+dev_dependencies:
+  integration_test:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
