@@ -205,9 +205,7 @@ class CLMediaFile extends CLMediaContent {
   static Future<CLMediaFile?> fromExifInfo(Map<String, dynamic> map) async {
     try {
       final exifmap = map['exiftool'][0];
-      if ("0000:00:00 00:00:00" == exifmap['CreateDate']) {
-        exifmap['CreateDate'] = null;
-      }
+
       return CLMediaFile(
         path: exifmap['SourceFile'] as String,
         md5: await checksum(File(exifmap['SourceFile'] as String)),
@@ -216,9 +214,7 @@ class CLMediaFile extends CLMediaContent {
         type: CLMediaType.fromMIMEType(exifmap['MIMEType'] as String),
         fileSuffix:
             ".${(exifmap['FileTypeExtension'] as String).toLowerCase()}",
-        createDate: exifmap['CreateDate'] != null
-            ? DateTime.parse(exifmap['CreateDate'] as String)
-            : null,
+        createDate: parseCreateDate(exifmap),
         height: exifmap['ImageHeight'] as int,
         width: exifmap['ImageWidth'] as int,
         duration:
@@ -228,6 +224,32 @@ class CLMediaFile extends CLMediaContent {
       debugPrint("Error parsing exif info: $e");
       return null;
     }
+  }
+
+  static DateTime? parseCreateDate(Map<String, dynamic> map) {
+    final String? createDateString;
+    if ("0000:00:00 00:00:00" == map['CreateDate']) {
+      createDateString = map['CreateDate'] = null;
+    } else {
+      createDateString =
+          map['CreateDate'] != null ? map['CreateDate'] as String : null;
+    }
+    final offsetString =
+        map['OffsetTime'] != null ? map['OffsetTime'] as String : null;
+    if (createDateString == null) return null;
+
+    final dateTimeList = createDateString.split(' ');
+    final dateString = dateTimeList[0].replaceAll(":", "-");
+    final timeString = dateTimeList[1];
+
+    final createDateStringCorrected = [dateString, timeString].join('T');
+
+    final isoString = offsetString != null
+        ? "$createDateStringCorrected$offsetString"
+        : createDateStringCorrected; // no offset → local time
+
+    final dateTime = DateTime.parse(isoString);
+    return dateTime;
   }
 
   // fix_me: use filetype and implement specific md5 computation
