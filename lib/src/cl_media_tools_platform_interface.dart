@@ -84,7 +84,7 @@ abstract class ClMediaInfoExtractorPlatform extends PlatformInterface {
   Future<Map<String, dynamic>> ffprobeVideo(
       String ffprobePath, String mediaPath) async {
     final result = await runCommand(
-        "$ffprobePath  -v error -select_streams v:0 $ffprobeEntries -print_format json  $mediaPath");
+        "$ffprobePath  -v error -select_streams v:0 $ffprobeEntries -print_format json  '$mediaPath'");
     if (result['exitCode'] == '0') {
       try {
         final jsonString = result['stdout'] ?? '';
@@ -102,7 +102,7 @@ abstract class ClMediaInfoExtractorPlatform extends PlatformInterface {
   Future<Map<String, dynamic>> ffprobeAudio(
       String ffprobePath, String mediaPath) async {
     final result = await runCommand(
-        "$ffprobePath  -v error -select_streams a:0 $ffprobeEntries -print_format json  $mediaPath");
+        "$ffprobePath  -v error -select_streams a:0 $ffprobeEntries -print_format json  '$mediaPath'");
     if (result['exitCode'] == '0') {
       try {
         final jsonString = result['stdout'] ?? '';
@@ -139,7 +139,7 @@ abstract class ClMediaInfoExtractorPlatform extends PlatformInterface {
       '$ffmpegPath '
       '-y '
       '-i '
-      '$mediaPath '
+      "'$mediaPath' "
       '-frames '
       '1 '
       '-q:v '
