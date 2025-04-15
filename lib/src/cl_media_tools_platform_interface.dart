@@ -64,7 +64,7 @@ abstract class ClMediaInfoExtractorPlatform extends PlatformInterface {
       String exiftoolPath, String mediaPath) async {
     final result = await runCommand(
         // "/usr/local/bin/exiftool  -n -j  '/Users/anandasarangaram/Downloads/WhatsApp Image 2025-03-30 at 17.28.28.jpeg'",
-        "$exiftoolPath -n -j $mediaPath");
+        "$exiftoolPath -n -j '$mediaPath'");
     if (result['exitCode'] == '0') {
       try {
         final jsonString = result['stdout'] ?? '';
