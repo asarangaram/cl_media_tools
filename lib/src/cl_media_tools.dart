@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'cl_media_tools_platform_interface.dart';
 
 enum CLMediaType {
+  collection,
   text,
   image,
   video,
