@@ -365,12 +365,17 @@ class CLMediaFile extends CLMediaContent {
       }
       final createDateString = exifInfo['EXIF DateTimeOriginal']?.printable;
       final offsetString = exifInfo['EXIF OffsetTimeOriginal']?.printable;
+
+      var extension = extensionFromMime(mime);
+      if (extension != null && !extension.startsWith('.')) {
+        extension = ".$extension";
+      }
       final imageInfo = <String, dynamic>{
         'path': mediaPath,
         'md5': await checksum(File(mediaPath)),
         'fileSize': stat.size,
         'mimeType': mime,
-        'fileSuffix': extensionFromMime(mime),
+        'fileSuffix': extension,
         'createDate': parseCreateDate(createDateString, offsetString)
             ?.millisecondsSinceEpoch,
         'height': exifInfo['EXIF ExifImageLength']?.printable.toInt(),
