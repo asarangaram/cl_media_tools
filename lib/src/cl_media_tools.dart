@@ -331,14 +331,20 @@ class CLMediaFile extends CLMediaContent {
       if (info == null) {
         throw Exception("Failed to get videoInfo");
       }
-
+      final createDateString = info.date;
+      final offsetString = null;
+      var extension = extensionFromMime(mime);
+      if (extension != null && !extension.startsWith('.')) {
+        extension = ".$extension";
+      }
       final videoInfo = <String, dynamic>{
         'path': info.path,
         'md5': await checksum(File(mediaPath)),
         'fileSize': info.filesize,
         'mimeType': info.mimetype,
-        'fileSuffix': extensionFromMime(mime),
-        'createDate': info.date,
+        'fileSuffix': extension,
+        'createDate': parseCreateDate(createDateString, offsetString)
+            ?.millisecondsSinceEpoch,
         'height': info.height,
         'width': info.width,
         'duration': info.duration,
