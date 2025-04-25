@@ -86,6 +86,9 @@ class FfmpegUtils {
 
   static Future<String> generatePreview(String mediaPath,
       {required String previewPath, int dimension = 256}) async {
+    if (!File(mediaPath).existsSync()) {
+      throw Exception("Media file not copied!");
+    }
     if (Platform.isMacOS) {
       final ffProbeInfo = await FfmpegUtils.ffprobe(mediaPath);
       final tileSize = _computeTileSize(ffProbeInfo.frameCount);
