@@ -1,7 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as img;
+import 'package:mime/mime.dart';
+import 'package:video_compress/video_compress.dart';
 
 import 'cl_media_tools_platform_interface.dart';
 
@@ -82,18 +86,53 @@ class FfmpegUtils {
 
   static Future<String> generatePreview(String mediaPath,
       {required String previewPath, int dimension = 256}) async {
-    final ffProbeInfo = await FfmpegUtils.ffprobe(mediaPath);
-    final tileSize = _computeTileSize(ffProbeInfo.frameCount);
-    final frameFreq = (ffProbeInfo.frameCount / (tileSize * tileSize)).floor();
+    if (Platform.isMacOS) {
+      final ffProbeInfo = await FfmpegUtils.ffprobe(mediaPath);
+      final tileSize = _computeTileSize(ffProbeInfo.frameCount);
+      final frameFreq =
+          (ffProbeInfo.frameCount / (tileSize * tileSize)).floor();
 
-    final preview = await ClMediaInfoExtractorPlatform.instance
-        .ffmpegGeneratePreview(ffmpegPath, mediaPath,
-            previewPath: previewPath,
-            frameFreq: frameFreq == 0 ? 1 : frameFreq,
-            dimension: 256,
-            tileSize: tileSize);
+      final preview = await ClMediaInfoExtractorPlatform.instance
+          .ffmpegGeneratePreview(ffmpegPath, mediaPath,
+              previewPath: previewPath,
+              frameFreq: frameFreq == 0 ? 1 : frameFreq,
+              dimension: 256,
+              tileSize: tileSize);
+      return preview;
+    } else {
+      final mime = lookupMimeType(mediaPath);
+      if (mime == null) {
+        throw Exception("Failed to get mime");
+      }
+      if (mime.startsWith('video')) {
+        final thumbnailFile = await VideoCompress.getFileThumbnail(mediaPath,
+            quality: 50, // default(100)
+            position: -1 // default(-1)
+            );
+        if (thumbnailFile.existsSync()) {
+          thumbnailFile.copySync(previewPath);
+          thumbnailFile.deleteSync();
+        }
+        return previewPath;
+      } else if (mime.startsWith('image')) {
+        final file = File(mediaPath);
+        final bytes = await file.readAsBytes();
 
-    return preview;
+        final originalImage = img.decodeImage(bytes);
+        if (originalImage == null) {
+          throw Exception("Failed to decode image");
+        }
+
+        final resized = img.copyResize(
+          originalImage,
+          width: 256,
+        );
+        final resizedBytes = img.encodeJpg(resized, quality: 90);
+        await File(previewPath).writeAsBytes(resizedBytes);
+        return previewPath;
+      }
+    }
+    throw Exception("Unsupported file");
   }
 
   static int _computeTileSize(double frameCount) {

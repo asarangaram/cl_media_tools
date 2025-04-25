@@ -3,12 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:exif/exif.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_video_info/flutter_video_info.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
-
-import 'cl_media_tools_platform_interface.dart';
 
 enum CLMediaType {
   collection,
@@ -310,10 +311,53 @@ class CLMediaFile extends CLMediaContent {
     String mediaPath, {
     String exiftoolPath = "/usr/local/bin/exiftool",
   }) async {
-    final exifinfo = await ClMediaInfoExtractorPlatform.instance
-        .getMediaInfo(exiftoolPath, mediaPath);
+    // Not available on mobile
+    /* final exifinfo = await ClMediaInfoExtractorPlatform.instance
+        .getMediaInfo(exiftoolPath, mediaPath); */
 
-    return CLMediaFile.fromExifInfo(exifinfo);
+    // Not providing createDate
+    //final MediaInfo info = await VideoCompress.getMediaInfo(mediaPath);
+    final mime = lookupMimeType(mediaPath);
+    if (mime == null) {
+      throw Exception("Failed to get mime");
+    }
+    if (mime.startsWith('video')) {
+      final info = await FlutterVideoInfo().getVideoInfo(mediaPath);
+      if (info == null) {
+        throw Exception("Failed to get videoInfo");
+      }
+
+      final videoInfo = <String, dynamic>{
+        'path': info.path,
+        'md5': await checksum(File(mediaPath)),
+        'fileSize': info.filesize,
+        'mimeType': info.mimetype,
+        'fileSuffix': extensionFromMime(mime),
+        'createDate': info.date,
+        'height': info.height,
+        'width': info.width,
+        'duration': info.duration,
+      };
+
+      return CLMediaFile.fromMap(videoInfo);
+    } else if (mime.startsWith('video')) {
+      final fileBytes = File(mediaPath).readAsBytesSync();
+      final exifInfo = await readExifFromBytes(fileBytes);
+
+      if (exifInfo.isEmpty) {
+        throw Exception("No EXIF information found");
+      }
+
+      if (exifInfo.containsKey('JPEGThumbnail')) {
+        exifInfo.remove('JPEGThumbnail');
+      }
+      if (exifInfo.containsKey('TIFFThumbnail')) {
+        exifInfo.remove('TIFFThumbnail');
+      }
+
+      return CLMediaFile.fromExifInfo(exifInfo);
+    }
+    throw Exception("Unsupported file");
   }
 
   CLMediaFile copyWith({
