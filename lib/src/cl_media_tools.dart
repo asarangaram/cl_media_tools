@@ -31,6 +31,13 @@ enum CLMediaType {
   }
 }
 
+extension ExtIntOnString on String? {
+  int? toInt() {
+    if (this == null) return null;
+    return int.parse(this!);
+  }
+}
+
 abstract class CLMediaContent {
   const CLMediaContent();
 
@@ -207,6 +214,8 @@ class CLMediaFile extends CLMediaContent {
   static Future<CLMediaFile?> fromExifInfo(Map<String, dynamic> map) async {
     try {
       final exifmap = map['exiftool'][0];
+      final createDateString = map['CreateDate'] as String?;
+      final offsetString = map['OffsetTime'] as String?;
 
       return CLMediaFile(
         path: exifmap['SourceFile'] as String,
@@ -216,7 +225,7 @@ class CLMediaFile extends CLMediaContent {
         type: CLMediaType.fromMIMEType(exifmap['MIMEType'] as String),
         fileSuffix:
             ".${(exifmap['FileTypeExtension'] as String).toLowerCase()}",
-        createDate: parseCreateDate(exifmap),
+        createDate: parseCreateDate(createDateString, offsetString),
         height: exifmap['ImageHeight'] as int,
         width: exifmap['ImageWidth'] as int,
         duration:
@@ -228,16 +237,12 @@ class CLMediaFile extends CLMediaContent {
     }
   }
 
-  static DateTime? parseCreateDate(Map<String, dynamic> map) {
-    final String? createDateString;
-    if ("0000:00:00 00:00:00" == map['CreateDate']) {
-      createDateString = map['CreateDate'] = null;
-    } else {
-      createDateString =
-          map['CreateDate'] != null ? map['CreateDate'] as String : null;
+  static DateTime? parseCreateDate(
+      String? createDateString, String? offsetString) {
+    if (createDateString == "0000:00:00 00:00:00") {
+      createDateString = null;
     }
-    final offsetString =
-        map['OffsetTime'] != null ? map['OffsetTime'] as String : null;
+
     if (createDateString == null) return null;
 
     final dateTimeList = createDateString.split(' ');
@@ -289,7 +294,7 @@ class CLMediaFile extends CLMediaContent {
       fileSize: (map['fileSize'] ?? 0) as int,
       mimeType: (map['mimeType'] ?? '') as String,
       type: CLMediaType.values.firstWhere(
-        (e) => e.name == map['name'],
+        (e) => (map['mimeType'] as String).startsWith(e.name),
         orElse: () => throw ArgumentError('Invalid MediaType: ${map['name']}'),
       ),
       fileSuffix: (map['fileSuffix'] ?? '') as String,
@@ -340,9 +345,13 @@ class CLMediaFile extends CLMediaContent {
       };
 
       return CLMediaFile.fromMap(videoInfo);
-    } else if (mime.startsWith('video')) {
+    } else if (mime.startsWith('image')) {
       final fileBytes = File(mediaPath).readAsBytesSync();
       final exifInfo = await readExifFromBytes(fileBytes);
+      final stat = await File(mediaPath).stat();
+      for (final entry in exifInfo.entries) {
+        print("${entry.key}: ${entry.value}");
+      }
 
       if (exifInfo.isEmpty) {
         throw Exception("No EXIF information found");
@@ -354,8 +363,22 @@ class CLMediaFile extends CLMediaContent {
       if (exifInfo.containsKey('TIFFThumbnail')) {
         exifInfo.remove('TIFFThumbnail');
       }
+      final createDateString = exifInfo['EXIF DateTimeOriginal']?.printable;
+      final offsetString = exifInfo['EXIF OffsetTimeOriginal']?.printable;
+      final imageInfo = <String, dynamic>{
+        'path': mediaPath,
+        'md5': await checksum(File(mediaPath)),
+        'fileSize': stat.size,
+        'mimeType': mime,
+        'fileSuffix': extensionFromMime(mime),
+        'createDate': parseCreateDate(createDateString, offsetString)
+            ?.millisecondsSinceEpoch,
+        'height': exifInfo['EXIF ExifImageLength']?.printable.toInt(),
+        'width': exifInfo['EXIF ExifImageWidth']?.printable.toInt(),
+        'duration': null,
+      };
 
-      return CLMediaFile.fromExifInfo(exifInfo);
+      return CLMediaFile.fromMap(imageInfo);
     }
     throw Exception("Unsupported file");
   }
