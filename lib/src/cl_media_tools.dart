@@ -355,9 +355,9 @@ class CLMediaFile extends CLMediaContent {
       final fileBytes = File(mediaPath).readAsBytesSync();
       final exifInfo = await readExifFromBytes(fileBytes);
       final stat = await File(mediaPath).stat();
-      for (final entry in exifInfo.entries) {
+      /* for (final entry in exifInfo.entries) {
         print("${entry.key}: ${entry.value}");
-      }
+      } */
 
       if (exifInfo.isEmpty) {
         throw Exception("No EXIF information found");
