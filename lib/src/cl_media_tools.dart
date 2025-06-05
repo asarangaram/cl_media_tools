@@ -359,7 +359,7 @@ class CLMediaFile extends CLMediaContent {
         print("${entry.key}: ${entry.value}");
       } */
 
-      // FIXME!
+      // FIXME! Why exif becomes empty?
       /* if (exifInfo.isEmpty) {
         throw Exception("No EXIF information found");
       } */
