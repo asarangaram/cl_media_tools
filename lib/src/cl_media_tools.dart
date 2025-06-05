@@ -359,9 +359,10 @@ class CLMediaFile extends CLMediaContent {
         print("${entry.key}: ${entry.value}");
       } */
 
-      if (exifInfo.isEmpty) {
+      // FIXME!
+      /* if (exifInfo.isEmpty) {
         throw Exception("No EXIF information found");
-      }
+      } */
 
       if (exifInfo.containsKey('JPEGThumbnail')) {
         exifInfo.remove('JPEGThumbnail');
