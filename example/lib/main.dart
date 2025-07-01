@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       FutureBuilder(
-                          future: CLMediaFile.fromPath(
+                          future: CLMediaFileUtils.fromPath(
                               //"'/Users/anandasarangaram/Downloads/old/Dont Upload delete after review/PHOTO-2024-11-27-11-02-58.jpg'",
                               "'$filename'"),
                           builder: (context, snapShot) {
