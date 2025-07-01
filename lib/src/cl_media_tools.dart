@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cl_basic_types/cl_basic_types.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:exif/exif.dart';
 import 'package:flutter/foundation.dart';
@@ -10,26 +11,6 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
-
-enum CLMediaType {
-  collection,
-  text,
-  image,
-  video,
-  audio,
-  file,
-  uri,
-  unknown;
-
-  static CLMediaType fromMIMEType(String mimiType) {
-    for (final type in CLMediaType.values) {
-      if (mimiType.startsWith(type.name)) {
-        return type;
-      }
-    }
-    return CLMediaType.file;
-  }
-}
 
 extension ExtIntOnString on String? {
   int? toInt() {

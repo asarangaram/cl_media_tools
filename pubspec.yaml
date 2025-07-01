@@ -3,10 +3,14 @@ description: "A new Flutter plugin project."
 version: 0.0.1
 homepage: https://www.cloudonlanapps.com
 
+publish_to: none
+
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  cl_basic_types:
+    path: ../cl_basic_types
   crypto: ^3.0.6
   exif: ^3.3.0
   flutter:
