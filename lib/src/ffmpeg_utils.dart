@@ -57,8 +57,10 @@ class FFProbeInfo {
 
 class FfmpegUtils {
   static String ffprobePath = "/usr/local/bin/ffprobe";
+
+  /// FIXME: Keeping this script for debugging, with hard path. Remove ASAP
   static String ffmpegPath =
-      '/Users/anandasarangaram/Work/keep_it_package/ffmpeg.sh'; //"/usr/local/bin/ffmpeg";
+      '/Users/anandasarangaram/Work/tools/ffmpeg.sh'; //"/usr/local/bin/ffmpeg";
 
   static Future<FFProbeInfo> ffprobe(String path) async {
     final ffprobeInfo =
