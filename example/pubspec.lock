@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      sha256: "9a8f69025044eb466b9b60ef3bc3ac99b4dc6c158ae9c56d25eeccf5bc56d024"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.5"
   async:
     dependency: transitive
     description:
@@ -55,6 +63,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  cl_server_dart_client:
+    dependency: transitive
+    description:
+      path: "../../../../sdks/dartsdk"
+      relative: true
+    source: path
+    version: "0.1.0"
   clock:
     dependency: transitive
     description:
@@ -95,6 +110,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
+  encrypt:
+    dependency: transitive
+    description:
+      name: encrypt
+      sha256: "62d9aa4670cc2a8798bab89b39fc71b6dfbacf615de6cf5001fb39f7e4a996a2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.3"
+  event_bus:
+    dependency: transitive
+    description:
+      name: event_bus
+      sha256: "1a55e97923769c286d295240048fc180e7b0768902c3c2e869fe059aafa15304"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   exif:
     dependency: transitive
     description:
@@ -135,6 +166,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "10.2.0"
+  fixnum:
+    dependency: transitive
+    description:
+      name: fixnum
+      sha256: b6dc7065e46c974bc7c5f143080a6764ec7a4be6da1285ececdc37be96de53be
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -229,6 +268,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.20.2"
+  js:
+    dependency: transitive
+    description:
+      name: js
+      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.2"
   json_annotation:
     dependency: transitive
     description:
@@ -301,6 +348,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  mqtt_client:
+    dependency: transitive
+    description:
+      name: mqtt_client
+      sha256: fd22ea00a4c7b5623e01000a91a256d62a8bacba38e9812170458070c52affed
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.11.9"
   path:
     dependency: "direct main"
     description:
@@ -333,6 +388,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.1"
   posix:
     dependency: transitive
     description:
@@ -354,6 +417,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  solidart:
+    dependency: transitive
+    description:
+      name: solidart
+      sha256: "2d15608b60fff6cf1ed39b4161bde03caddacf6656275d3bedeb3605edfc60e9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.4"
   source_span:
     dependency: transitive
     description:
@@ -426,6 +497,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  uuid:
+    dependency: transitive
+    description:
+      name: uuid
+      sha256: a11b666489b1954e01d992f3d601b1804a33937b5a8fe677bd26b8a9f96f96e8
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.5.2"
   vector_math:
     dependency: transitive
     description:
@@ -483,5 +562,5 @@ packages:
     source: hosted
     version: "6.5.0"
 sdks:
-  dart: ">=3.9.2 <4.0.0"
+  dart: ">=3.10.1 <4.0.0"
   flutter: ">=3.27.0"
