@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:cl_basic_types/cl_basic_types.dart';
 import 'package:cl_extensions/cl_extensions.dart'
@@ -98,31 +99,47 @@ class CLMediaFileUtils {
     //final MediaInfo info = await VideoCompress.getMediaInfo(mediaPath);
     final mime = lookupMimeType(mediaPath);
     if (mime == null) {
+      debugPrint("CLMediaFileUtils: Failed to get mime for $mediaPath");
       throw Exception("Failed to get mime");
     }
+    debugPrint("CLMediaFileUtils: Mime for $mediaPath is $mime");
     if (mime.startsWith('video')) {
-      final info = await FlutterVideoInfo().getVideoInfo(mediaPath);
-      if (info == null) {
+      Map<String, dynamic>? videoInfo;
+      try {
+        final info = await FlutterVideoInfo().getVideoInfo(mediaPath);
+        if (info != null) {
+          final createDateString = info.date;
+          final offsetString = null;
+          var extension = extensionFromMime(mime);
+          if (extension != null && !extension.startsWith('.')) {
+            extension = ".$extension";
+          }
+          videoInfo = <String, dynamic>{
+            'path': info.path,
+            'md5': await checksum(File(mediaPath)),
+            'fileSize': info.filesize,
+            'mimeType': info.mimetype,
+            'fileSuffix': extension,
+            'createDate': parseCreateDate(createDateString, offsetString)
+                ?.millisecondsSinceEpoch,
+            'height': info.height,
+            'width': info.width,
+            'duration': info.duration,
+          };
+        }
+      } catch (e) {
+        debugPrint('CLMediaFileUtils: FlutterVideoInfo failed: $e');
+        // Fallback to FFprobe
+      }
+
+      if (videoInfo == null) {
+        debugPrint('CLMediaFileUtils: Attempting FFprobe fallback...');
+        videoInfo = await _getVideoInfoFromFFProbe(mediaPath, mime);
+      }
+
+      if (videoInfo == null) {
         throw Exception("Failed to get videoInfo");
       }
-      final createDateString = info.date;
-      final offsetString = null;
-      var extension = extensionFromMime(mime);
-      if (extension != null && !extension.startsWith('.')) {
-        extension = ".$extension";
-      }
-      final videoInfo = <String, dynamic>{
-        'path': info.path,
-        'md5': await checksum(File(mediaPath)),
-        'fileSize': info.filesize,
-        'mimeType': info.mimetype,
-        'fileSuffix': extension,
-        'createDate': parseCreateDate(createDateString, offsetString)
-            ?.millisecondsSinceEpoch,
-        'height': info.height,
-        'width': info.width,
-        'duration': info.duration,
-      };
 
       return CLMediaFile.fromMap(videoInfo);
     } else if (mime.startsWith('image')) {
@@ -166,6 +183,8 @@ class CLMediaFileUtils {
 
       return CLMediaFile.fromMap(imageInfo);
     }
+    debugPrint(
+        "CLMediaFileUtils: Unsupported file type for $mediaPath (mime: $mime)");
     throw Exception("Unsupported file");
   }
 
@@ -268,5 +287,67 @@ class CLMediaFileUtils {
       }
     }
     return null;
+  }
+
+  static Future<Map<String, dynamic>?> _getVideoInfoFromFFProbe(
+    String mediaPath,
+    String mimeType,
+  ) async {
+    try {
+      final result = await Process.run('ffprobe', [
+        '-v',
+        'quiet',
+        '-print_format',
+        'json',
+        '-show_format',
+        '-show_streams',
+        mediaPath,
+      ]);
+
+      if (result.exitCode != 0) {
+        debugPrint('FFprobe failed: ${result.stderr}');
+        return null;
+      }
+
+      final Map<String, dynamic> data =
+          // ignore: avoid_dynamic_calls
+          (jsonDecode(result.stdout as String) as Map<String, dynamic>);
+
+      final format = data['format'] as Map<String, dynamic>;
+      final streams = (data['streams'] as List).cast<Map<String, dynamic>>();
+
+      // Some files might have multiple streams, pick the video one
+      final videoStream = streams.firstWhere(
+        (s) => s['codec_type'] == 'video',
+        orElse: () => {},
+      );
+
+      final tags = format['tags'] as Map<String, dynamic>? ?? {};
+      final createDateString = tags['creation_time'] as String?;
+
+      var extension = extensionFromMime(mimeType);
+      if (extension != null && !extension.startsWith('.')) {
+        extension = ".$extension";
+      }
+
+      final durationSec = double.tryParse(format['duration'] as String? ?? '');
+      final durationMs = durationSec != null ? durationSec * 1000 : null;
+
+      return {
+        'path': mediaPath,
+        'md5': await checksum(File(mediaPath)),
+        'fileSize': int.tryParse(format['size'] as String? ?? '0'),
+        'mimeType': mimeType,
+        'fileSuffix': extension,
+        'createDate':
+            DateTime.tryParse(createDateString ?? '')?.millisecondsSinceEpoch,
+        'height': videoStream['height'] as int?,
+        'width': videoStream['width'] as int?,
+        'duration': durationMs,
+      };
+    } catch (e) {
+      debugPrint('FFprobe error: $e');
+      return null;
+    }
   }
 }
