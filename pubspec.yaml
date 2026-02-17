@@ -11,6 +11,8 @@ environment:
 dependencies:
   cl_basic_types:
     path: ../cl_basic_types
+  cl_extensions:
+    path: ../cl_extensions
   crypto: ^3.0.6
   exif: ^3.3.0
   flutter:
